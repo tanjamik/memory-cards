@@ -40,6 +40,15 @@ const NUM_PAIRS = 4;
 let cardValues = [];
 let flippedCards = [];
 let matchedCount = 0;
+let mistakes = 0;
+let score = 0;
+
+function updateHUD() {
+  const scoreEl = document.getElementById('score');
+  const mistakesEl = document.getElementById('mistakes');
+  if (scoreEl) scoreEl.textContent = score;
+  if (mistakesEl) mistakesEl.textContent = mistakes;
+}
 
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
@@ -76,18 +85,31 @@ function checkMatch() {
     card1.classList.add('matched');
     card2.classList.add('matched');
     matchedCount += 2;
-    if (matchedCount === NUM_PAIRS * 2) alert('Bravo! You found all pairs!');
+    if (matchedCount === NUM_PAIRS * 2) {
+      score += 1;
+      alert('Bravo! You found all pairs!');
+      setupGame();
+    }
   } else {
+    mistakes += 1;
     card1.classList.remove('flipped');
     card2.classList.remove('flipped');
     card1.textContent = '?';
     card2.textContent = '?';
+
+    if (mistakes >= 10) {
+      score = 0;
+      alert('Too many mistakes! Score reset.');
+      setupGame();
+    }
   }
   flippedCards = [];
+  updateHUD();
 }
 
 function resetGame() {
   matchedCount = 0;
+  mistakes = 0;
   setupGame();
 }
 
@@ -104,7 +126,9 @@ function setupGame() {
 
   cardValues = [...selectedForPairs, ...selectedForPairs, loner];
   matchedCount = 0;
+  mistakes = 0;
   createBoard();
+  updateHUD();
 }
 
 setupGame();
