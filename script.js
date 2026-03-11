@@ -1,6 +1,43 @@
-const words = ['мама', 'тата', 'мики', 'јаки']; // 4 pairs = 8 cards
-const loner = 'таки'; // The 9th card
-let cardValues = [...words, ...words, loner];
+// Pool of possible words to use for pairs.
+// Add up to 30 (or more) different options here.
+const allWords = [
+  'мама',
+  'тата',
+  'мики',
+  'јаки',
+  'баба',
+  'деда',
+  'супермен',
+  'пас',
+  'мачка',
+  'плеј стејшн',
+  'хранче',
+  'сунце',
+  'месец',
+  'море',
+  'планина',
+  'трава',
+  'наочаре',
+  'школа',
+  'андријана',
+  'чича',
+  'бетмен',
+  'пита',
+  'доручак',
+  'оловка',
+  'петица',
+  'нос',
+  'хлеб',
+  'вода',
+  'чарапа',
+  'крушка',
+];
+
+// How many pairs to show on the board each game.
+// With 4 pairs there will be 8 matching cards + 1 loner = 9 cards total.
+const NUM_PAIRS = 4;
+
+let cardValues = [];
 let flippedCards = [];
 let matchedCount = 0;
 
@@ -39,7 +76,7 @@ function checkMatch() {
     card1.classList.add('matched');
     card2.classList.add('matched');
     matchedCount += 2;
-    if (matchedCount === 8) alert('Bravo! You found all pairs!');
+    if (matchedCount === NUM_PAIRS * 2) alert('Bravo! You found all pairs!');
   } else {
     card1.classList.remove('flipped');
     card2.classList.remove('flipped');
@@ -51,7 +88,23 @@ function checkMatch() {
 
 function resetGame() {
   matchedCount = 0;
+  setupGame();
+}
+
+function setupGame() {
+  // Pick random words from the big pool for this run.
+  const shuffled = shuffle([...allWords]);
+  const selectedForPairs = shuffled.slice(0, NUM_PAIRS);
+
+  // Choose a loner card that is NOT one of the pair words if possible.
+  const remaining = shuffled.slice(NUM_PAIRS);
+  const loner =
+    remaining.find((word) => !selectedForPairs.includes(word)) ??
+    selectedForPairs[0];
+
+  cardValues = [...selectedForPairs, ...selectedForPairs, loner];
+  matchedCount = 0;
   createBoard();
 }
 
-createBoard();
+setupGame();
