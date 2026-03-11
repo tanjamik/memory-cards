@@ -33,15 +33,17 @@ const allWords = [
   'крушка',
 ];
 
-// How many pairs to show on the board each game.
-// With 4 pairs there will be 8 matching cards + 1 loner = 9 cards total.
-const NUM_PAIRS = 4;
+// Base difficulty: 3x3 grid (4 pairs + 1 loner = 9 cards).
+// After score reaches 3, game switches to a 3x4 grid (6 pairs = 12 cards, no loner).
+const BASE_NUM_PAIRS = 4;
+const ADVANCED_NUM_PAIRS = 6;
 
 let cardValues = [];
 let flippedCards = [];
 let matchedCount = 0;
 let mistakes = 0;
 let score = 0;
+let currentTargetMatches = BASE_NUM_PAIRS * 2;
 
 function updateHUD() {
   const scoreEl = document.getElementById('score');
@@ -57,6 +59,17 @@ function shuffle(array) {
 function createBoard() {
   const board = document.getElementById('game-board');
   board.innerHTML = '';
+
+  // Adjust grid layout based on current score.
+  // Score < 3 → 3x3 (3 columns), Score >= 3 → 3x4 (4 columns).
+  if (board) {
+    if (score >= 3) {
+      board.style.gridTemplateColumns = 'repeat(4, 100px)';
+    } else {
+      board.style.gridTemplateColumns = 'repeat(3, 100px)';
+    }
+  }
+
   shuffle(cardValues).forEach((val) => {
     const card = document.createElement('div');
     card.classList.add('card');
@@ -85,7 +98,7 @@ function checkMatch() {
     card1.classList.add('matched');
     card2.classList.add('matched');
     matchedCount += 2;
-    if (matchedCount === NUM_PAIRS * 2) {
+    if (matchedCount === currentTargetMatches) {
       score += 1;
       alert('Bravo! You found all pairs!');
       setupGame();
@@ -114,17 +127,28 @@ function resetGame() {
 }
 
 function setupGame() {
+  const isAdvanced = score >= 3;
+  const numPairsThisGame = isAdvanced ? ADVANCED_NUM_PAIRS : BASE_NUM_PAIRS;
+
   // Pick random words from the big pool for this run.
   const shuffled = shuffle([...allWords]);
-  const selectedForPairs = shuffled.slice(0, NUM_PAIRS);
+  const selectedForPairs = shuffled.slice(0, numPairsThisGame);
 
-  // Choose a loner card that is NOT one of the pair words if possible.
-  const remaining = shuffled.slice(NUM_PAIRS);
-  const loner =
-    remaining.find((word) => !selectedForPairs.includes(word)) ??
-    selectedForPairs[0];
+  if (isAdvanced) {
+    // 3x4 grid: 6 pairs = 12 cards, no loner.
+    cardValues = [...selectedForPairs, ...selectedForPairs];
+  } else {
+    // 3x3 grid: 4 pairs + 1 loner = 9 cards.
+    // Choose a loner card that is NOT one of the pair words if possible.
+    const remaining = shuffled.slice(numPairsThisGame);
+    const loner =
+      remaining.find((word) => !selectedForPairs.includes(word)) ??
+      selectedForPairs[0];
 
-  cardValues = [...selectedForPairs, ...selectedForPairs, loner];
+    cardValues = [...selectedForPairs, ...selectedForPairs, loner];
+  }
+
+  currentTargetMatches = numPairsThisGame * 2;
   matchedCount = 0;
   mistakes = 0;
   createBoard();
